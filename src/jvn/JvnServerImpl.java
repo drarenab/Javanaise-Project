@@ -62,7 +62,7 @@ public class JvnServerImpl
 	public  JvnObject jvnCreateObject(Serializable o)
 	throws jvn.JvnException { 
 		// to be completed 
-		return null; 
+		return new jvnObjectImpl(o); 
 	}
 	
 	/**
