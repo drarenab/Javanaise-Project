@@ -2,16 +2,20 @@ package jvn;
 
 import java.io.Serializable;
 
+import outils.ObjectStatEnum;
+
 
 public class jvnObjectImpl  implements JvnObject{
 
 	private Serializable SharedObject;
-	private int objectStat;//0 for no lock, 1 for read lock, 2 for write lock
+	private ObjectStatEnum objectStat;//0 for no lock, 1 for read lock, 2 for write lock
 	private int objectId=-1;
+	
 	
 	public jvnObjectImpl(Serializable o) {
 		SharedObject=o;
-		objectStat=0;
+		objectStat=ObjectStatEnum.UNLOCK;
+		
 	}
 	
 	public void jvnLockRead() throws JvnException {
