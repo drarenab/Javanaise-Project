@@ -24,7 +24,7 @@ public class jvnObjectImpl  implements JvnObject{
 	
 	public void jvnLockRead() throws JvnException {
 		// TODO Auto-generated method stub
-		synchronized(objectStat) {
+		synchronized(SharedObject) {// sur l'objet ou sur son etat
 			if(objectStat==objectStat.READ_LOCK_CACHED) {
 				objectStat=objectStat.READ_LOCK_TAKEN;
 			}else if(objectStat==objectStat.No_LOCK){
@@ -42,7 +42,7 @@ public class jvnObjectImpl  implements JvnObject{
 	
 	public void jvnLockWrite() throws JvnException {
 		// TODO Auto-generated method stub
-		synchronized(objectStat) {
+		synchronized(SharedObject) {// sur l'objet ou sur son etat
 			if(objectStat==objectStat.WRITE_LOCK_CACHED || objectStat==objectStat.READ_LOCK_TAKEN_WRITE_LOCK_CACHED)
 			{
 				objectStat=objectStat.WRITE_LOCK_TAKEN;
@@ -60,7 +60,7 @@ public class jvnObjectImpl  implements JvnObject{
 
 	public void jvnUnLock() throws JvnException {
 		// TODO Auto-generated method stub
-		synchronized (objectStat) {
+		synchronized(SharedObject) {// sur l'objet ou sur son etat
 		
 			if(objectStat==objectStat.READ_LOCK_TAKEN) {
 				objectStat=objectStat.READ_LOCK_CACHED;
@@ -91,7 +91,30 @@ public class jvnObjectImpl  implements JvnObject{
 
 	public void jvnInvalidateReader() throws JvnException {
 		// TODO Auto-generated method stub
-		
+		synchronized(SharedObject) {// sur l'objet ou sur son etat
+			if(objectStat==ObjectStatEnum.READ_LOCK_TAKEN) {
+				while(objectStat==ObjectStatEnum.READ_LOCK_TAKEN) {//en attente d'une ecriture d'un autre utilisateur
+					try {
+						wait();
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+				}
+				objectStat=ObjectStatEnum.No_LOCK;
+
+			}//pour eviter le while et la suite en sequentiel
+			else if(objectStat==ObjectStatEnum.WRITE_LOCK_CACHED
+			   ||objectStat==ObjectStatEnum.WRITE_LOCK_TAKEN) {
+				throw new JvnException("case not permitted ");
+			}else if (objectStat==ObjectStatEnum.READ_LOCK_CACHED
+					||objectStat==ObjectStatEnum.READ_LOCK_TAKEN_WRITE_LOCK_CACHED) {
+				objectStat=ObjectStatEnum.No_LOCK;
+
+			}
+			
+		}
 	}
 
 	public Serializable jvnInvalidateWriter() throws JvnException {
