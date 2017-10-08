@@ -144,7 +144,26 @@ public class jvnObjectImpl  implements JvnObject{
 
 	public Serializable jvnInvalidateWriterForReader() throws JvnException {
 		// TODO Auto-generated method stub
-		return null;
+		synchronized (SharedObject) {
+			if(objectStat==ObjectStatEnum.WRITE_LOCK_TAKEN) {
+				while(objectStat==ObjectStatEnum.WRITE_LOCK_TAKEN) {
+					try {
+						wait();
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				objectStat=ObjectStatEnum.READ_LOCK_CACHED;
+			}else if(objectStat==ObjectStatEnum.WRITE_LOCK_CACHED) {//not sure
+				objectStat=ObjectStatEnum.READ_LOCK_CACHED;
+			}else if(objectStat==ObjectStatEnum.READ_LOCK_CACHED
+					||objectStat==ObjectStatEnum.No_LOCK
+					||objectStat==ObjectStatEnum.READ_LOCK_TAKEN_WRITE_LOCK_CACHED) {
+				objectStat=ObjectStatEnum.READ_LOCK_TAKEN;
+			}
+		}
+		return SharedObject;
 	}
 
 }
