@@ -63,6 +63,13 @@ public class JvnServerImpl
 	public  void jvnTerminate()
 	throws jvn.JvnException {
     // to be completed 
+		
+		try {
+			jvnCoord.jvnTerminate(js);
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	} 
 	
 	/**
@@ -95,7 +102,12 @@ public class JvnServerImpl
 	public  void jvnRegisterObject(String jon, JvnObject jo)
 	throws jvn.JvnException {
 		// to be completed 
-		
+		try {
+			jvnCoord.jvnRegisterObject(jon, jo, js);//not sure 
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
 	}
 	
 	/**
