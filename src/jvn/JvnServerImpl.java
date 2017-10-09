@@ -8,7 +8,10 @@
 
 package jvn;
 
+import java.rmi.Naming;
+import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
 import java.io.*;
 
 
@@ -17,9 +20,15 @@ public class JvnServerImpl
               extends UnicastRemoteObject 
 							implements JvnLocalServer, JvnRemoteServer{
 	
-  // A JVN server is managed as a singleton 
-	private static JvnServerImpl js = null;
 
+	private static final long serialVersionUID = 1L;
+
+// A JVN server is managed as a singleton 
+	private static JvnServerImpl js = null;
+	
+	private static JvnRemoteCoord jvnCoord;
+	
+	private ArrayList<JvnObject> objectsCache;
   /**
   * Default constructor
   * @throws JvnException
@@ -27,6 +36,8 @@ public class JvnServerImpl
 	private JvnServerImpl() throws Exception {
 		super();
 		// to be completed
+		objectsCache=new ArrayList<JvnObject>();
+		jvnCoord=(JvnRemoteCoord) Naming.lookup("PUT URL HERE! probably LOCALHOST");
 	}
 	
   /**
@@ -62,7 +73,17 @@ public class JvnServerImpl
 	public  JvnObject jvnCreateObject(Serializable o)
 	throws jvn.JvnException { 
 		// to be completed 
-		return new jvnObjectImpl(o); 
+		
+		try {
+			int id = jvnCoord.jvnGetObjectId();
+			JvnObject object=new jvnObjectImpl(o, id);
+			return object;
+		
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			throw new JvnException("Error ! jvnCreateObject ");
+		}
 	}
 	
 	/**
@@ -74,6 +95,7 @@ public class JvnServerImpl
 	public  void jvnRegisterObject(String jon, JvnObject jo)
 	throws jvn.JvnException {
 		// to be completed 
+		
 	}
 	
 	/**
@@ -85,6 +107,8 @@ public class JvnServerImpl
 	public  JvnObject jvnLookupObject(String jon)
 	throws jvn.JvnException {
     // to be completed 
+		
+		
 		return null;
 	}	
 	

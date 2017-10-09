@@ -16,10 +16,10 @@ public class jvnObjectImpl  implements JvnObject{
 	 * for exemple when creating new sentence it does it mean that we want to 
 	 * write new sentence i think
 	 */
-	public jvnObjectImpl(Serializable o) {
+	public jvnObjectImpl(Serializable o,int id) {
 		SharedObject=o;
 		objectStat=ObjectStatEnum.WRITE_LOCK_TAKEN;
-		
+		objectId=id;
 	}
 	
 	public void jvnLockRead() throws JvnException {
@@ -73,6 +73,7 @@ public class jvnObjectImpl  implements JvnObject{
 				throw new JvnException("can't do unlock lock for the stat : "+this.objectStat );
 			}
 		
+			
 		}
 	}
 
