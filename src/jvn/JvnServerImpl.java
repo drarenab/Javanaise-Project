@@ -126,14 +126,17 @@ public class JvnServerImpl
 			object=jvnCoord.jvnLookupObject(jon, js);
 			if(object!=null) {
 				objectsCache.add(object);
+				return object;
 			}
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			throw new JvnException("EXception in jvnLookUpObject in jvnServer");
 		}
 		
+		return null;
 		
-		return object;
+		
 	}	
 	
 	/**
