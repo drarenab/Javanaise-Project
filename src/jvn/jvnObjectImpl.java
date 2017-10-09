@@ -25,12 +25,12 @@ public class jvnObjectImpl  implements JvnObject{
 	public void jvnLockRead() throws JvnException {
 		// TODO Auto-generated method stub
 		synchronized(SharedObject) {// sur l'objet ou sur son etat
-			if(objectStat==objectStat.READ_LOCK_CACHED) {
-				objectStat=objectStat.READ_LOCK_TAKEN;
-			}else if(objectStat==objectStat.No_LOCK){
+			if(objectStat==ObjectStatEnum.READ_LOCK_CACHED) {
+				objectStat=ObjectStatEnum.READ_LOCK_TAKEN;
+			}else if(objectStat==ObjectStatEnum.No_LOCK){
 				SharedObject=JvnServerImpl.jvnGetServer().jvnLockRead(this.jvnGetObjectId());
-				objectStat=objectStat.READ_LOCK_TAKEN;
-			}else if(objectStat==objectStat.WRITE_LOCK_CACHED){
+				objectStat=ObjectStatEnum.READ_LOCK_TAKEN;
+			}else if(objectStat==ObjectStatEnum.WRITE_LOCK_CACHED){
 				objectStat=ObjectStatEnum.READ_LOCK_TAKEN_WRITE_LOCK_CACHED;
 			}else {
 			throw new JvnException("can't do lock read for the stat : "+this.objectStat );
@@ -43,9 +43,9 @@ public class jvnObjectImpl  implements JvnObject{
 	public void jvnLockWrite() throws JvnException {
 		// TODO Auto-generated method stub
 		synchronized(SharedObject) {// sur l'objet ou sur son etat
-			if(objectStat==objectStat.WRITE_LOCK_CACHED || objectStat==objectStat.READ_LOCK_TAKEN_WRITE_LOCK_CACHED)
+			if(objectStat==ObjectStatEnum.WRITE_LOCK_CACHED || objectStat==ObjectStatEnum.READ_LOCK_TAKEN_WRITE_LOCK_CACHED)
 			{
-				objectStat=objectStat.WRITE_LOCK_TAKEN;
+				objectStat=ObjectStatEnum.WRITE_LOCK_TAKEN;
 			}else if(objectStat==ObjectStatEnum.No_LOCK
 					||objectStat==ObjectStatEnum.READ_LOCK_TAKEN
 					||objectStat==ObjectStatEnum.READ_LOCK_CACHED){
@@ -62,13 +62,13 @@ public class jvnObjectImpl  implements JvnObject{
 		// TODO Auto-generated method stub
 		synchronized(SharedObject) {// sur l'objet ou sur son etat
 		
-			if(objectStat==objectStat.READ_LOCK_TAKEN) {
-				objectStat=objectStat.READ_LOCK_CACHED;
-			}else if(objectStat==objectStat.WRITE_LOCK_TAKEN) {
-				objectStat=objectStat.WRITE_LOCK_CACHED;
-			}else if(objectStat== objectStat.READ_LOCK_TAKEN_WRITE_LOCK_CACHED){
+			if(objectStat==ObjectStatEnum.READ_LOCK_TAKEN) {
+				objectStat=ObjectStatEnum.READ_LOCK_CACHED;
+			}else if(objectStat==ObjectStatEnum.WRITE_LOCK_TAKEN) {
+				objectStat=ObjectStatEnum.WRITE_LOCK_CACHED;
+			}else if(objectStat== ObjectStatEnum.READ_LOCK_TAKEN_WRITE_LOCK_CACHED){
 				//on livére seulement le read on ne touche pas au write
-				objectStat=objectStat.WRITE_LOCK_CACHED;
+				objectStat=ObjectStatEnum.WRITE_LOCK_CACHED;
 			}else {
 				throw new JvnException("can't do unlock lock for the stat : "+this.objectStat );
 			}

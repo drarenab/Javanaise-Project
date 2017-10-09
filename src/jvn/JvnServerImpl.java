@@ -116,12 +116,24 @@ public class JvnServerImpl
 	* @return the JVN object 
 	* @throws JvnException
 	**/
+	
 	public  JvnObject jvnLookupObject(String jon)
 	throws jvn.JvnException {
     // to be completed 
+		JvnObject object=null;
+		
+		try {
+			object=jvnCoord.jvnLookupObject(jon, js);
+			if(object!=null) {
+				objectsCache.add(object);
+			}
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		
-		return null;
+		return object;
 	}	
 	
 	/**
