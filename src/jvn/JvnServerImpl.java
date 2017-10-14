@@ -194,8 +194,20 @@ public class JvnServerImpl
   public void jvnInvalidateReader(int joi)
 	throws java.rmi.RemoteException,jvn.JvnException {
 		// to be completed 
-	  
-	  
+	  //recuperer l'objet du cache and invalidate it
+	  boolean found=false;
+	  for (JvnObject jvnObject : objectsCache) {
+		if(jvnObject.jvnGetObjectId()==joi) {
+			found=true;
+			jvnObject.jvnInvalidateReader();
+			break;
+		}
+			
+	  }
+	  if(!found) {
+			throw new JvnException("no object in server cache to invalidate for Reader");
+		}
+
 	};
 	    
 	/**
@@ -207,7 +219,21 @@ public class JvnServerImpl
   public Serializable jvnInvalidateWriter(int joi)
 	throws java.rmi.RemoteException,jvn.JvnException { 
 		// to be completed 
-		return null;
+	
+	  boolean found=false;
+	  for (JvnObject jvnObject : objectsCache) {
+		if(jvnObject.jvnGetObjectId()==joi) {
+			found=true;
+			return jvnObject.jvnInvalidateWriter();
+			
+		}
+			
+	  }
+	  if(!found) {
+			return new JvnException("no object in server cache to invalidate for writing");
+		}
+	  //ligne rajouter pour rien mais obligatoire apparement 
+	  return null;
 	};
 	
 	/**
@@ -219,9 +245,21 @@ public class JvnServerImpl
    public Serializable jvnInvalidateWriterForReader(int joi)
 	 throws java.rmi.RemoteException,jvn.JvnException { 
 		// to be completed 
-		return null;
-	 };
-
+	   boolean found=false;
+		  for (JvnObject jvnObject : objectsCache) {
+			if(jvnObject.jvnGetObjectId()==joi) {
+				found=true;
+				return jvnObject.jvnInvalidateWriterForReader();
+				
+			}
+				
+		  }
+		  if(!found) {
+				return new JvnException("no object in server cache to invalidate writer for reader");
+			}
+		  //ligne rajouter pour rien mais obligatoire apparement 
+		  return null;
+		};
 }
 
  
