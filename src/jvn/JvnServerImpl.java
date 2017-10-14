@@ -126,7 +126,8 @@ public class JvnServerImpl
 			object=jvnCoord.jvnLookupObject(jon, js);
 			if(object!=null) {
 				objectsCache.add(object);
-				return object;
+			return object;
+			
 			}
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block
@@ -148,7 +149,17 @@ public class JvnServerImpl
    public Serializable jvnLockRead(int joi)
 	 throws JvnException {
 		// to be completed 
-		return null;
+	   
+	   Serializable s;
+	try {
+		s = jvnCoord.jvnLockRead(joi, js);
+		return s;
+	} catch (RemoteException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+		return new JvnException("Exception in jvnLockRead in jvnServer ");
+	}
+	   
 
 	}	
 	/**
@@ -160,7 +171,16 @@ public class JvnServerImpl
    public Serializable jvnLockWrite(int joi)
 	 throws JvnException {
 		// to be completed 
-		return null;
+		Serializable s;
+		
+		try {
+			s=jvnCoord.jvnLockWrite(joi, js);
+			return s;
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return new JvnException("Exception in jvnLockWrite in jvnServer");
+		}
 	}	
 
 	
@@ -174,6 +194,8 @@ public class JvnServerImpl
   public void jvnInvalidateReader(int joi)
 	throws java.rmi.RemoteException,jvn.JvnException {
 		// to be completed 
+	  
+	  
 	};
 	    
 	/**
