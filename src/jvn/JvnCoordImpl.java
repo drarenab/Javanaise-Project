@@ -171,7 +171,7 @@ public class JvnCoordImpl
 	readingServers.add(js);
 	
 	
-	//if no server is writing
+	//if there is a server writing
 	if(writingServer!=null) {
 		//we call invalidateWriterForReader
 		object = writingServer.jvnInvalidateWriterForReader(joi);
@@ -200,8 +200,38 @@ public class JvnCoordImpl
   **/
    public Serializable jvnLockWrite(int joi, JvnRemoteServer js)
    throws java.rmi.RemoteException, JvnException{
-    // to be completed
-    return null;
+	// to be completed
+	Serializable object = null; 
+	//verify that the object exists
+	String jon = jvnObjectNameIdList.get(joi);
+	JvnObject jo = jvnObjectList.get(jon);
+	/*
+	if(jo==null)
+		return new JvnException();
+	*/
+	//get the writing servers on the jvnObject   
+	JvnRemoteServer writingServer = jvnServerWriterListOfJvnObject.get(joi);
+	//get list of reading servers on the jvnObject
+	HashSet<JvnRemoteServer> readingServers = jvnServerReaderListOfJvnObject.get(joi); 
+	//if there are servers reading ..
+	if(readingServers!=null) {
+		//invalidate all readers 
+		while(readingServers.iterator().hasNext()) {
+			readingServers.iterator().next().jvnInvalidateReader(joi);
+		}
+	}
+	
+	//if a server is writing
+	if(writingServer!=null) {
+		object = writingServer.jvnInvalidateWriter(joi);
+	}
+	
+	jvnServerWriterListOfJvnObject.remove(joi);
+	//we put the new server in the map
+	jvnServerWriterListOfJvnObject.put(joi, js);
+	
+	
+    return object;
    }
 
 	/**
@@ -212,6 +242,18 @@ public class JvnCoordImpl
     public void jvnTerminate(JvnRemoteServer js)
 	 throws java.rmi.RemoteException, JvnException {
 	 // to be completed
+    }
+    
+    public static void main(String[] argv) {
+    JvnCoordImpl jci;
+	try {
+		jci = JvnCoordImpl.getInstance();
+	} catch (Exception e1) {
+		// TODO Auto-generated catch block
+		e1.printStackTrace();
+	}
+	
+	System.out.println("coordinator ready....");
     }
 }
 
