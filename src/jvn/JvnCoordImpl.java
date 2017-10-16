@@ -16,7 +16,8 @@ public class JvnCoordImpl
               extends UnicastRemoteObject 
 							implements JvnRemoteCoord{
 	
-
+	private static JvnRemoteCoord coord=null;
+	
   /**
   * Default constructor
   * @throws JvnException
