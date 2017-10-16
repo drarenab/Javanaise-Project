@@ -37,7 +37,7 @@ public class JvnServerImpl
 		super();
 		// to be completed
 		objectsCache=new ArrayList<JvnObject>();
-		jvnCoord=(JvnRemoteCoord) Naming.lookup("PUT URL HERE! probably LOCALHOST");
+		jvnCoord=(JvnRemoteCoord) Naming.lookup("coordinator");
 	}
 	
   /**
