@@ -123,6 +123,7 @@ public class JvnServerImpl
 		JvnObject object=null;
 		
 		try {
+			
 			object=jvnCoord.jvnLookupObject(jon, js);
 			if(object!=null) {
 				objectsCache.add(object);

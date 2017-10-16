@@ -64,19 +64,19 @@ public class jvnObjectImpl  implements JvnObject{
 		
 			if(objectStat==ObjectStatEnum.READ_LOCK_TAKEN) {
 				objectStat=ObjectStatEnum.READ_LOCK_CACHED;
-				notify();
+//				notify();
 			}else if(objectStat==ObjectStatEnum.WRITE_LOCK_TAKEN) {
 				objectStat=ObjectStatEnum.WRITE_LOCK_CACHED;
-				notify();
+//				notify();
 			}else if(objectStat== ObjectStatEnum.READ_LOCK_TAKEN_WRITE_LOCK_CACHED){
 				//on livére seulement le read on ne touche pas au write
-				notify();
+//				notify();
 				objectStat=ObjectStatEnum.WRITE_LOCK_CACHED;
 			}else {
 				throw new JvnException("can't do unlock lock for the stat : "+this.objectStat );
 			}
 		
-			
+//			notify();
 		}
 	}
 

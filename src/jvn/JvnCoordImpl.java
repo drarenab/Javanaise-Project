@@ -11,14 +11,10 @@ package jvn;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import sun.management.snmp.jvminstr.JvmOSImpl;
+//import sun.management.snmp.jvminstr.JvmOSImpl;
 
 import java.io.Serializable;
 
@@ -48,12 +44,13 @@ public class JvnCoordImpl
 	//the last id that was assigned to a jvnObject created
 	private int jvnObjectId;
 	private static JvnCoordImpl instance = null;
+	
 	private JvnCoordImpl() throws Exception {
 		// to be completed
 		jvnObjectList = new ConcurrentHashMap<String,JvnObject>();
 		jvnObjectNameIdList = new ConcurrentHashMap<Integer,String>();
 		jvnObjectId = -1;
-	
+		jvnServerLookupList=new ConcurrentHashMap<String,HashSet<JvnRemoteServer>>();
 		//Registry registry = LocateRegistry.getRegistry("localhost");
         //JvnRemoteServer obj = (JvnRemoteServer) registry.lookup("MyServer");
 		
@@ -119,7 +116,8 @@ public class JvnCoordImpl
   throws java.rmi.RemoteException,jvn.JvnException{
     // to be completed 
 	 //jvnObject to be returned
-	JvnObject jo;
+
+	  JvnObject jo;
     //getting the list of servers that have made a lookup on the jvnObject(jon)
 	HashSet<JvnRemoteServer> serversLookupSet = jvnServerLookupList.get(jon);
 	//if the list does not exist we create it
