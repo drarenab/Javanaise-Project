@@ -7,6 +7,10 @@ import outils.ObjectStatEnum;
 
 public class jvnObjectImpl  implements JvnObject{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private Serializable SharedObject;
 	private ObjectStatEnum objectStat;//0 for no lock, 1 for read lock, 2 for write lock
 	private int objectId=-1;
@@ -24,7 +28,7 @@ public class jvnObjectImpl  implements JvnObject{
 	
 	public void jvnLockRead() throws JvnException {
 		// TODO Auto-generated method stub
-		synchronized(SharedObject) {// sur l'objet ou sur son etat
+		synchronized(this) {// sur l'objet ou sur son etat
 			if(objectStat==ObjectStatEnum.READ_LOCK_CACHED) {
 				objectStat=ObjectStatEnum.READ_LOCK_TAKEN;
 			}else if(objectStat==ObjectStatEnum.No_LOCK){
@@ -42,7 +46,7 @@ public class jvnObjectImpl  implements JvnObject{
 	
 	public void jvnLockWrite() throws JvnException {
 		// TODO Auto-generated method stub
-		synchronized(SharedObject) {// sur l'objet ou sur son etat
+		synchronized(this) {// sur l'objet ou sur son etat
 			if(objectStat==ObjectStatEnum.WRITE_LOCK_CACHED || objectStat==ObjectStatEnum.READ_LOCK_TAKEN_WRITE_LOCK_CACHED)
 			{
 				objectStat=ObjectStatEnum.WRITE_LOCK_TAKEN;
@@ -60,17 +64,17 @@ public class jvnObjectImpl  implements JvnObject{
 
 	public void jvnUnLock() throws JvnException {
 		// TODO Auto-generated method stub
-		synchronized(SharedObject) {// sur l'objet ou sur son etat
+		synchronized(this) {// sur l'objet ou sur son etat
 		
 			if(objectStat==ObjectStatEnum.READ_LOCK_TAKEN) {
 				objectStat=ObjectStatEnum.READ_LOCK_CACHED;
-//				notify();
+				notify();
 			}else if(objectStat==ObjectStatEnum.WRITE_LOCK_TAKEN) {
 				objectStat=ObjectStatEnum.WRITE_LOCK_CACHED;
-//				notify();
+				notify();
 			}else if(objectStat== ObjectStatEnum.READ_LOCK_TAKEN_WRITE_LOCK_CACHED){
 				//on livére seulement le read on ne touche pas au write
-//				notify();
+				notify();
 				objectStat=ObjectStatEnum.WRITE_LOCK_CACHED;
 			}else {
 				throw new JvnException("can't do unlock lock for the stat : "+this.objectStat );
@@ -95,7 +99,7 @@ public class jvnObjectImpl  implements JvnObject{
 
 	public void jvnInvalidateReader() throws JvnException {
 		// TODO Auto-generated method stub
-		synchronized(SharedObject) {// sur l'objet ou sur son etat
+		synchronized(this) {// sur l'objet ou sur son etat
 			if(objectStat==ObjectStatEnum.READ_LOCK_TAKEN) {
 				while(objectStat==ObjectStatEnum.READ_LOCK_TAKEN) {//en attente d'une ecriture d'un autre utilisateur
 					try {
