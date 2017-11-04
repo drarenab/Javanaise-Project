@@ -51,6 +51,8 @@ public class JvnCoordImpl
 		jvnObjectNameIdList = new ConcurrentHashMap<Integer,String>();
 		jvnObjectId = -1;
 		jvnServerLookupList=new ConcurrentHashMap<String,HashSet<JvnRemoteServer>>();
+		jvnServerList = new ConcurrentHashMap<Integer,JvnRemoteServer>();
+
 		//Registry registry = LocateRegistry.getRegistry("localhost");
         //JvnRemoteServer obj = (JvnRemoteServer) registry.lookup("MyServer");
 		
@@ -86,8 +88,7 @@ public class JvnCoordImpl
   /**
   * Associate a symbolic name with a JVN object
   * @param jon : the JVN object name
-  * @param jo  : the JVN object 
-  * @param joi : the JVN object identification
+  * @param jo  : the JVN object
   * @param js  : the remote reference of the JVNServer
   * @throws java.rmi.RemoteException,JvnException
   **/
@@ -246,12 +247,13 @@ public class JvnCoordImpl
     public static void main(String[] argv) {
     JvnCoordImpl jci;
 	try {
+
 		jci = JvnCoordImpl.getInstance();
+
 	} catch (Exception e1) {
 		// TODO Auto-generated catch block
 		e1.printStackTrace();
 	}
-	
 	System.out.println("coordinator ready....");
     }
 }
