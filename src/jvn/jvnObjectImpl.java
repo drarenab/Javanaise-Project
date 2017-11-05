@@ -95,7 +95,7 @@ public class jvnObjectImpl  implements JvnObject{
 			throw new JvnException("Id nagative , not valid !");
 		return objectId;
 	}
-	//retourne l'objet si il a lock teken ou bien retourne seulement l'etat de l'objet
+
 	public Serializable jvnGetObjectState() throws JvnException {
 		// TODO Auto-generated method stub
 		synchronized(this){
