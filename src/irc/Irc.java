@@ -139,7 +139,7 @@ public class Irc {
 		// invoke the method
 		((Sentence)(irc.sentence.jvnGetObjectState())).write(s);
 		
-		// unlock the object
+//		 unlock the object
 		irc.sentence.jvnUnLock();
 	 } catch (JvnException je) {
 		   System.out.println("IRC problem  : " + je.getMessage());

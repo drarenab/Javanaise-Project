@@ -21,6 +21,7 @@ public class jvnObjectImpl  implements JvnObject{
 	 * write new sentence i think
 	 */
 	public jvnObjectImpl(Serializable o,int id) {
+		System.out.println("creation d'un nouvel objet");
 		SharedObject=o;
 		objectStat=ObjectStatEnum.WRITE_LOCK_TAKEN;
 		objectId=id;
@@ -28,6 +29,7 @@ public class jvnObjectImpl  implements JvnObject{
 	
 	public void jvnLockRead() throws JvnException {
 		// TODO Auto-generated method stub
+		System.out.println("lock Read");
 		synchronized(this) {// sur l'objet ou sur son etat
 			if(objectStat==ObjectStatEnum.READ_LOCK_CACHED) {
 				objectStat=ObjectStatEnum.READ_LOCK_TAKEN;
@@ -46,6 +48,7 @@ public class jvnObjectImpl  implements JvnObject{
 	
 	public void jvnLockWrite() throws JvnException {
 		// TODO Auto-generated method stub
+		System.out.println("lock write");
 		synchronized(this) {// sur l'objet ou sur son etat
 			if(objectStat==ObjectStatEnum.WRITE_LOCK_CACHED || objectStat==ObjectStatEnum.READ_LOCK_TAKEN_WRITE_LOCK_CACHED)
 			{
@@ -64,6 +67,7 @@ public class jvnObjectImpl  implements JvnObject{
 
 	public void jvnUnLock() throws JvnException {
 		// TODO Auto-generated method stub
+		System.out.println("unlock");
 		synchronized(this) {// sur l'objet ou sur son etat
 		
 			if(objectStat==ObjectStatEnum.READ_LOCK_TAKEN) {
@@ -94,11 +98,15 @@ public class jvnObjectImpl  implements JvnObject{
 	//retourne l'objet si il a lock teken ou bien retourne seulement l'etat de l'objet
 	public Serializable jvnGetObjectState() throws JvnException {
 		// TODO Auto-generated method stub
-		return SharedObject ;
+		synchronized(this){
+			return SharedObject ;
+		}
+
 	}
 
 	public void jvnInvalidateReader() throws JvnException {
 		// TODO Auto-generated method stub
+		System.out.println("invalidate reader");
 		synchronized(this) {// sur l'objet ou sur son etat
 			if(objectStat==ObjectStatEnum.READ_LOCK_TAKEN) {
 				while(objectStat==ObjectStatEnum.READ_LOCK_TAKEN) {//en attente d'une ecriture d'un autre utilisateur
@@ -127,7 +135,8 @@ public class jvnObjectImpl  implements JvnObject{
 
 	public Serializable jvnInvalidateWriter() throws JvnException {
 		// TODO Auto-generated method stub
-		synchronized (SharedObject) {
+		System.out.println("invalidate writer");
+		synchronized (this) {
 			if(objectStat==ObjectStatEnum.WRITE_LOCK_TAKEN) {
 				while (objectStat==ObjectStatEnum.WRITE_LOCK_TAKEN) {
 					try {
@@ -152,7 +161,9 @@ public class jvnObjectImpl  implements JvnObject{
 
 	public Serializable jvnInvalidateWriterForReader() throws JvnException {
 		// TODO Auto-generated method stub
-		synchronized (SharedObject) {
+		System.out.println("invalidate reader for writer");
+		synchronized (this) {
+			
 			if(objectStat==ObjectStatEnum.WRITE_LOCK_TAKEN) {
 				while(objectStat==ObjectStatEnum.WRITE_LOCK_TAKEN) {
 					try {
