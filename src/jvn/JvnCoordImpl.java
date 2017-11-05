@@ -10,6 +10,9 @@ package jvn;
 
 import outils.ObjectStatEnum;
 
+import java.net.MalformedURLException;
+import java.rmi.Naming;
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
@@ -60,14 +63,7 @@ public class JvnCoordImpl
 		jvnServerList = new ConcurrentHashMap<Integer,JvnRemoteServer>();
         jvnServerWriterListOfJvnObject = new ConcurrentHashMap<>();
         jvnServerReaderListOfJvnObject = new ConcurrentHashMap<>();
-		Registry reg;
-		try {
-			reg = LocateRegistry.createRegistry(1099);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			reg = LocateRegistry.getRegistry();
-		}
-		reg.rebind("coordinator", this);
+
 	}
 	
 	synchronized public static JvnCoordImpl getInstance() throws Exception {
@@ -158,13 +154,12 @@ public class JvnCoordImpl
        System.out.println("Cord jvnLockRead: LockReadCalled");
     // to be completed
 	   Serializable object;
+       object = jvnObjectList.get(jvnObjectNameIdList.get(joi)).jvnGetObjectState();
+
+
 	//verify that the object exists
 	String jon = jvnObjectNameIdList.get(joi);
-	JvnObject jo = jvnObjectList.get(jon);
-	/*
-	if(jo==null)
-		return new JvnException();
-	*/
+
 	//get the writing servers on the jvnObject
 	JvnRemoteServer writingServer = jvnServerWriterListOfJvnObject.get(joi);
 	//get list of reading servers on the jvnObject
@@ -178,7 +173,7 @@ public class JvnCoordImpl
 		jvnServerReaderListOfJvnObject.put(joi, readingServers);
 	}
 	//and we add the  new server to the reading servers of the jvn object (joi)
-	readingServers.add(js);
+       jvnServerReaderListOfJvnObject.get(joi).add(js);
 
 	System.out.println("Cord jvnLockRead: reading server added:" +readingServers);
 	//if there is a server writing
@@ -187,21 +182,12 @@ public class JvnCoordImpl
 		//we call invalidateWriterForReader
 		object = writingServer.jvnInvalidateWriterForReader(joi);
 		//we add the writing server to the reading servers after we did the invaldiation
-		readingServers.add(writingServer);
+        jvnServerReaderListOfJvnObject.get(joi).add(writingServer);
 		//we remove the server from the writing servers list
 		jvnServerWriterListOfJvnObject.remove(joi);
 
         System.out.println("Cord jvnLockRead: writing server added to reading server:"+readingServers);
         System.out.println("Cord jvnLockRead: writing server removed from writing servers:"+writingServer);
-	}
-	else {
-		//if there is no servers writing then the object is still the same so we return it as it is !!
-		/**
-		 * NEED TO BE CHECKED ???????????????
-		 */
-
-        System.out.println("Cord jvnLockRead: writing server = null");
-		object = jvnObjectList.get(joi);
 	}
 
     return object;
@@ -217,7 +203,12 @@ public class JvnCoordImpl
    synchronized public Serializable jvnLockWrite(int joi, JvnRemoteServer js)
    throws java.rmi.RemoteException, JvnException{
 	// to be completed
-	Serializable object = null; 
+
+
+	Serializable object = null;
+
+       object = jvnObjectList.get(jvnObjectNameIdList.get(joi)).jvnGetObjectState();
+
 	//verify that the object exists
 	String jon = jvnObjectNameIdList.get(joi);
 	JvnObject jo = jvnObjectList.get(jon);
@@ -243,9 +234,10 @@ public class JvnCoordImpl
         System.out.println("Cord jvnLockWrite: writing server != null");
 
         object = writingServer.jvnInvalidateWriter(joi);
+        jvnServerWriterListOfJvnObject.remove(joi);
 	}
 	
-	jvnServerWriterListOfJvnObject.remove(joi);
+
 	//we put the new server in the map
 	jvnServerWriterListOfJvnObject.put(joi, js);
 	
@@ -266,15 +258,33 @@ public class JvnCoordImpl
     public static void main(String[] argv) {
     JvnCoordImpl jci;
 	try {
+		//jci = JvnCoordImpl.getInstance();
 
-		jci = JvnCoordImpl.getInstance();
+        Registry registry;
+        JvnCoordImpl JVI = null;
 
+		JvnCoordImpl jvnCoord = new JvnCoordImpl();
+        String address = "//localhost:1050/coord";
+
+        try{
+            registry = LocateRegistry.createRegistry(1050);
+            Naming.rebind(address, jvnCoord);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
 	} catch (Exception e1) {
 		// TODO Auto-generated catch block
 		e1.printStackTrace();
 	}
+
 	System.out.println("coordinator ready....");
+
+    while (true);
     }
+
+
 }
 
  

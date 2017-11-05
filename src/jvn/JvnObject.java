@@ -39,7 +39,7 @@ public interface JvnObject extends Serializable {
 	* Unlock  the object 
 	* @throws JvnException
 	**/
-	public void jvnUnLock()
+    public void jvnUnLock()
 	throws jvn.JvnException; 
 	
 	
@@ -79,5 +79,8 @@ public interface JvnObject extends Serializable {
 	* @throws JvnException
 	**/
    public Serializable jvnInvalidateWriterForReader()
-	 throws jvn.JvnException;	
+	 throws jvn.JvnException;
+
+
+    public void jvnSetToNoLock() throws JvnException;
 }

@@ -39,7 +39,6 @@ public class Irc {
         try {
             jo = js.jvnLookupObject("IRC");
 
-
         if (jo == null) {
 			jo = js.jvnCreateObject(new Sentence());
 			// after creation, I have a write lock on the object
@@ -175,17 +174,8 @@ public class Irc {
 		public void actionPerformed (ActionEvent e) {
 		 try {
 			// lock the object in read mode
-			irc.sentence.jvnUnLock();
-			
-			// invoke the method
-			String s = ((Sentence)(irc.sentence.jvnGetObjectState())).read();
-			
-			// unlock the object
-			irc.sentence.jvnUnLock();
-			
-			// display the read value
-			irc.data.setText(s);
-			irc.text.append(s+"\n");
+			irc.sentence.jvnSetToNoLock();
+
 		   } catch (JvnException je) {
 			   System.out.println("IRC problem : " + je.getMessage());
 		   }
