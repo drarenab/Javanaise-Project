@@ -8,6 +8,8 @@
 
 package jvn;
 
+import outils.ObjectStatEnum;
+
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
@@ -46,16 +48,18 @@ public class JvnCoordImpl
 	private static JvnCoordImpl instance = null;
 	
 	private JvnCoordImpl() throws Exception {
-		// to be completed
+        super();
+
+        System.out.println("Cord new cord imp");
+
+        // to be completed
 		jvnObjectList = new ConcurrentHashMap<String,JvnObject>();
 		jvnObjectNameIdList = new ConcurrentHashMap<Integer,String>();
 		jvnObjectId = -1;
 		jvnServerLookupList=new ConcurrentHashMap<String,HashSet<JvnRemoteServer>>();
 		jvnServerList = new ConcurrentHashMap<Integer,JvnRemoteServer>();
-
-		//Registry registry = LocateRegistry.getRegistry("localhost");
-        //JvnRemoteServer obj = (JvnRemoteServer) registry.lookup("MyServer");
-		
+        jvnServerWriterListOfJvnObject = new ConcurrentHashMap<>();
+        jvnServerReaderListOfJvnObject = new ConcurrentHashMap<>();
 		Registry reg;
 		try {
 			reg = LocateRegistry.createRegistry(1099);
@@ -129,10 +133,13 @@ public class JvnCoordImpl
     
     //we adds the server to the list
     serversLookupSet.add(js);
+
     //if the jvnObject exists we return it
-    if(jvnObjectList.containsKey(jon))
-    	return jvnObjectList.get(jon);
-    
+    if(jvnObjectList.containsKey(jon)) {
+    	//jvnObjectList.get(jon).setLock(ObjectStatEnum.No_LOCK);
+		return jvnObjectList.get(jon);
+	}
+
     //else we return null
     return null;
     
@@ -147,8 +154,10 @@ public class JvnCoordImpl
   **/
    synchronized public Serializable jvnLockRead(int joi, JvnRemoteServer js)
    throws java.rmi.RemoteException, JvnException{
+
+       System.out.println("Cord jvnLockRead: LockReadCalled");
     // to be completed
-	   Serializable object; 
+	   Serializable object;
 	//verify that the object exists
 	String jon = jvnObjectNameIdList.get(joi);
 	JvnObject jo = jvnObjectList.get(jon);
@@ -156,12 +165,13 @@ public class JvnCoordImpl
 	if(jo==null)
 		return new JvnException();
 	*/
-	//get the writing servers on the jvnObject   
+	//get the writing servers on the jvnObject
 	JvnRemoteServer writingServer = jvnServerWriterListOfJvnObject.get(joi);
 	//get list of reading servers on the jvnObject
-	HashSet<JvnRemoteServer> readingServers = jvnServerReaderListOfJvnObject.get(joi); 
+	HashSet<JvnRemoteServer> readingServers = jvnServerReaderListOfJvnObject.get(joi);
 	//if no server is reading
 	if(readingServers==null) {
+        System.out.println("Cord jvnLockRead: ReadingServers = null");
 		//we create  the set of servers
 		readingServers = new HashSet<JvnRemoteServer>();
 		//we add the set to the server readers map
@@ -169,25 +179,31 @@ public class JvnCoordImpl
 	}
 	//and we add the  new server to the reading servers of the jvn object (joi)
 	readingServers.add(js);
-	
-	
+
+	System.out.println("Cord jvnLockRead: reading server added:" +readingServers);
 	//if there is a server writing
 	if(writingServer!=null) {
+        System.out.println("Cord jvnLockRead: writing server != null");
 		//we call invalidateWriterForReader
 		object = writingServer.jvnInvalidateWriterForReader(joi);
 		//we add the writing server to the reading servers after we did the invaldiation
 		readingServers.add(writingServer);
 		//we remove the server from the writing servers list
 		jvnServerWriterListOfJvnObject.remove(joi);
+
+        System.out.println("Cord jvnLockRead: writing server added to reading server:"+readingServers);
+        System.out.println("Cord jvnLockRead: writing server removed from writing servers:"+writingServer);
 	}
 	else {
 		//if there is no servers writing then the object is still the same so we return it as it is !!
 		/**
 		 * NEED TO BE CHECKED ???????????????
 		 */
+
+        System.out.println("Cord jvnLockRead: writing server = null");
 		object = jvnObjectList.get(joi);
 	}
-	
+
     return object;
    }
 
@@ -215,6 +231,7 @@ public class JvnCoordImpl
 	HashSet<JvnRemoteServer> readingServers = jvnServerReaderListOfJvnObject.get(joi); 
 	//if there are servers reading ..
 	if(readingServers!=null) {
+        System.out.println("Cord jvnLockWrite: reading server != null");
 		//invalidate all readers 
 		while(readingServers.iterator().hasNext()) {
 			readingServers.iterator().next().jvnInvalidateReader(joi);
@@ -223,7 +240,9 @@ public class JvnCoordImpl
 	
 	//if a server is writing
 	if(writingServer!=null) {
-		object = writingServer.jvnInvalidateWriter(joi);
+        System.out.println("Cord jvnLockWrite: writing server != null");
+
+        object = writingServer.jvnInvalidateWriter(joi);
 	}
 	
 	jvnServerWriterListOfJvnObject.remove(joi);

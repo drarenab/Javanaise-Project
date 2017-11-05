@@ -21,7 +21,7 @@ public class JvnServerImpl
 							implements JvnLocalServer, JvnRemoteServer{
 	
 
-	private static final long serialVersionUID = 1L;
+	//private static final long serialVersionUID = 1L;
 
 // A JVN server is managed as a singleton 
 	private static JvnServerImpl js = null;
@@ -80,17 +80,19 @@ public class JvnServerImpl
 	public  JvnObject jvnCreateObject(Serializable o)
 	throws jvn.JvnException { 
 		// to be completed 
-		
+        JvnObject object=null;
 		try {
 			int id = jvnCoord.jvnGetObjectId();
-			JvnObject object=new jvnObjectImpl(o, id);
-			return object;
-		
+			object=new jvnObjectImpl(o, id);
+
+
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			throw new JvnException("Error ! jvnCreateObject ");
 		}
+
+        return object;
 	}
 	
 	/**
@@ -103,7 +105,8 @@ public class JvnServerImpl
 	throws jvn.JvnException {
 		// to be completed 
 		try {
-			jvnCoord.jvnRegisterObject(jon, jo, js);//not sure 
+			jvnCoord.jvnRegisterObject(jon, jo, js);//not sure
+            objectsCache.add(jo);
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -150,10 +153,14 @@ public class JvnServerImpl
    public Serializable jvnLockRead(int joi)
 	 throws JvnException {
 		// to be completed 
-	   
+
+       System.out.println("jvn server lock read called1");
 	   Serializable s;
 	try {
+
 		s = jvnCoord.jvnLockRead(joi, js);
+
+        System.out.println("jvn server lock read called");
 		return s;
 	} catch (RemoteException e) {
 		// TODO Auto-generated catch block
@@ -173,9 +180,11 @@ public class JvnServerImpl
 	 throws JvnException {
 		// to be completed 
 		Serializable s;
-		
+
+       System.out.println("jvn server lock read called1");
 		try {
 			s=jvnCoord.jvnLockWrite(joi, js);
+            System.out.println("jvn server lock write called");
 			return s;
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block

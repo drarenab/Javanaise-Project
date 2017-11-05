@@ -7,6 +7,8 @@
 
 package jvn;
 
+import outils.ObjectStatEnum;
+
 import java.io.*;
 
 /**
@@ -17,6 +19,8 @@ import java.io.*;
 
 public interface JvnObject extends Serializable {
 
+	public void setLock(ObjectStatEnum lock);
+	public ObjectStatEnum getLock();
 	/**
 	* Get a Read lock on the object 
 	* @throws JvnException
