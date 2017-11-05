@@ -9,6 +9,8 @@
 package irc;
 
 public class Sentence implements java.io.Serializable, SentenceInterface {
+
+	private static final long serialVersionUID = 1L;
 	String 		data;
   
 	public Sentence() {
