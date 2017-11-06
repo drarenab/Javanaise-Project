@@ -81,6 +81,7 @@ public class JvnCoordImpl
   *  newly created JVN object)
   * @throws java.rmi.RemoteException,JvnException
   **/
+	
   synchronized public int jvnGetObjectId()
   throws java.rmi.RemoteException,jvn.JvnException {
     // to be completed 
@@ -205,11 +206,8 @@ public class JvnCoordImpl
    synchronized public Serializable jvnLockWrite(int joi, JvnRemoteServer js)
    throws java.rmi.RemoteException, JvnException{
 	// to be completed
-
-
 	Serializable object = null;
-
-       object = jvnObjectList.get(jvnObjectNameIdList.get(joi)).jvnGetObjectState();
+    object = jvnObjectList.get(jvnObjectNameIdList.get(joi)).jvnGetObjectState();
 
 	//verify that the object exists
 	String jon = jvnObjectNameIdList.get(joi);
@@ -224,11 +222,14 @@ public class JvnCoordImpl
 	HashSet<JvnRemoteServer> readingServers = jvnServerReaderListOfJvnObject.get(joi); 
 	//if there are servers reading ..
 	
-	System.out.print("ReadingServSize: "+readingServers.size());
+	//System.out.print("ReadingServSize: "+readingServers.size());
 	if(readingServers!=null) {
         System.out.println("Cord jvnLockWrite: reading server != null");
 		//invalidate all readers 
+        
+        System.out.println("size"+readingServers.size());
 		while(readingServers.iterator().hasNext()) {
+//			System.out.println("mouchkil");
 			readingServers.iterator().next().jvnInvalidateReader(joi);
 		}
 	}

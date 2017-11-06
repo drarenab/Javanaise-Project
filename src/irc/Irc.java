@@ -7,12 +7,18 @@
 
 package irc;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Button;
+import java.awt.Color;
+import java.awt.Frame;
+import java.awt.GridLayout;
+import java.awt.TextArea;
+import java.awt.TextField;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-
-import jvn.*;
-import java.io.*;
+import jvn.JvnException;
+import jvn.JvnObject;
+import jvn.JvnServerImpl;
 
 
 public class Irc {
@@ -28,7 +34,6 @@ public class Irc {
   **/
 	public static void main(String argv[]) {
 	   System.out.println("Irc main called");
-
 
 		// initialize JVN
 		JvnServerImpl js = JvnServerImpl.jvnGetServer();
@@ -47,6 +52,8 @@ public class Irc {
 
 			System.out.println("IRC object null, new one has been created");
 		}
+        
+        jo.jvnSetToNoLock();
 		// create the graphical part of the Chat application
 
             System.out.println("Object Id : "+jo.jvnGetObjectId());

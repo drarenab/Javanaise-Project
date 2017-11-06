@@ -30,25 +30,14 @@ public class jvnObjectImpl implements JvnObject{
 		objectId=id;
 	}
 
-
-	public void setLock(ObjectStatEnum lock) {
-		this.objectStat = lock;
-	}
-
-
-	public ObjectStatEnum getLock() {
-		return this.objectStat;
-	}
-
-
-	public  void jvnLockRead() throws JvnException {
+	synchronized public  void jvnLockRead() throws JvnException {
 
         System.out.println("JvnObject :lock read called");
 		// TODO Auto-generated method stub
 
 		//synchronized(this) {// sur l'objet ou sur son etat
 			if(objectStat==ObjectStatEnum.READ_LOCK_CACHED
-            //        ||objectStat==ObjectStatEnum.READ_LOCK_TAKEN
+                    ||objectStat==ObjectStatEnum.READ_LOCK_TAKEN
             )
 			{
 
@@ -72,12 +61,13 @@ public class jvnObjectImpl implements JvnObject{
 		
 	}
 	
-	public  void jvnLockWrite() throws JvnException {
+	synchronized public  void jvnLockWrite() throws JvnException {
 		System.out.println("JvnObject :lock write called");
 		// TODO Auto-generated method stub
 		//synchronized(this) {// sur l'objet ou sur son etat
 			if(objectStat==ObjectStatEnum.WRITE_LOCK_CACHED
-                    || objectStat==ObjectStatEnum.READ_LOCK_TAKEN_WRITE_LOCK_CACHED)
+                    || objectStat==ObjectStatEnum.READ_LOCK_TAKEN_WRITE_LOCK_CACHED
+                    || objectStat==ObjectStatEnum.WRITE_LOCK_TAKEN)
 			{
 				System.out.println("JvnObject :lock write (WRITE_LOCK_CACHED et READ_LOCK_TAKEN_WRITE_LOCK_CACHED)");
 
@@ -97,7 +87,7 @@ public class jvnObjectImpl implements JvnObject{
 		//}
 	}
 
-    synchronized public     void jvnUnLock() throws JvnException {
+    synchronized public void jvnUnLock() throws JvnException {
 		System.out.println("JvnObject :unlock called");
 		// TODO Auto-generated method stub
 	//	synchronized(this) {// sur l'objet ou sur son etat
@@ -124,7 +114,7 @@ public class jvnObjectImpl implements JvnObject{
 	//	}
 	}
 
-	public int jvnGetObjectId() throws JvnException {
+    synchronized public int jvnGetObjectId() throws JvnException {
 		// TODO Auto-generated method stub
 	
 		if(objectId<0)
@@ -153,7 +143,7 @@ public class jvnObjectImpl implements JvnObject{
 		
 		if(objectStat==ObjectStatEnum.READ_LOCK_TAKEN) {
 				System.out.println("JvnObject :Invalidate reader READ_LOCK_TAKEN");
-				//while(objectStat==ObjectStatEnum.READ_LOCK_TAKEN) {//en attente d'une ecriture d'un autre utilisateur
+				while(objectStat==ObjectStatEnum.READ_LOCK_TAKEN) {//en attente d'une ecriture d'un autre utilisateur
 					try {
 						this.wait();
 					} catch (InterruptedException e) {
@@ -161,7 +151,7 @@ public class jvnObjectImpl implements JvnObject{
 						e.printStackTrace();
 					}
 					
-			//	}
+				}
 				objectStat=ObjectStatEnum.No_LOCK;
 
 			}//pour eviter le while et la suite en sequentiel
@@ -175,14 +165,16 @@ public class jvnObjectImpl implements JvnObject{
 			}
 
 			else if(objectStat==ObjectStatEnum.READ_LOCK_TAKEN_WRITE_LOCK_CACHED) {
-                try {
-                    this.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                objectStat=ObjectStatEnum.No_LOCK;
-
-            }
+				while(objectStat==ObjectStatEnum.READ_LOCK_TAKEN_WRITE_LOCK_CACHED) {
+					try {
+	                    this.wait();
+	                } catch (InterruptedException e) {
+	                    e.printStackTrace();
+	                }
+				}
+				
+				 objectStat=ObjectStatEnum.No_LOCK;
+			}
 
 	}
 
@@ -192,19 +184,23 @@ public class jvnObjectImpl implements JvnObject{
 
 			if(objectStat==ObjectStatEnum.WRITE_LOCK_TAKEN) {
 				System.out.println("JvnObject :Invalidate writer WRITE_LOCK_TAKEN ");
-                try {
-                    this.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+				while(objectStat==ObjectStatEnum.WRITE_LOCK_TAKEN) {
+	                try {
+	                    this.wait();
+	                } catch (InterruptedException e) {
+	                    e.printStackTrace();
+	                }
+				}
                 objectStat=ObjectStatEnum.No_LOCK;
 			}else if(objectStat==ObjectStatEnum.READ_LOCK_TAKEN_WRITE_LOCK_CACHED){
 				System.out.println("JvnObject :Invalidate writer  WRITE_LOCK_CACHED");
-                try {
-                    this.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+				while(objectStat==ObjectStatEnum.READ_LOCK_TAKEN_WRITE_LOCK_CACHED) {
+	                try {
+	                    this.wait();
+	                } catch (InterruptedException e) {
+	                    e.printStackTrace();
+	                }
+				}
 				objectStat=ObjectStatEnum.No_LOCK;
 				
 			}
