@@ -14,14 +14,21 @@ public class Sentence implements java.io.Serializable, SentenceInterface {
 	String 		data;
   
 	public Sentence() {
-		data = new String("");
+		data = "";
 	}
 	
+	@Override
 	public void write(String text) {
 		data = text;
 	}
+	
+	@Override
 	public String read() {
 		return data;	
 	}
 	
+	@Override
+	public void setToUnlock() {
+		return;
+	}
 }

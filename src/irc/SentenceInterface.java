@@ -1,6 +1,7 @@
 package irc;
 
 import annotation.Read;
+import annotation.Unlock;
 import annotation.Write;
 /**
  * Sentence interface containing two functions annotated with our new annotation
@@ -13,4 +14,6 @@ public interface SentenceInterface {
 	public void write(String text) ;
 	@Read
 	public String read() ;
+	@Unlock
+	void setToUnlock();
 }

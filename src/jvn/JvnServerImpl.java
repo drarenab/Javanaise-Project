@@ -8,15 +8,17 @@
 
 package jvn;
 
+import java.net.MalformedURLException;
 import java.rmi.Naming;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.io.*;
+import java.util.HashMap;
 
 
-
-public class JvnServerImpl 	
+public class JvnServerImpl
               extends UnicastRemoteObject 
 							implements JvnLocalServer, JvnRemoteServer{
 	
@@ -26,18 +28,27 @@ public class JvnServerImpl
 // A JVN server is managed as a singleton 
 	private static JvnServerImpl js = null;
 	
-	private static JvnRemoteCoord jvnCoord;
+	private JvnRemoteCoord jvnCoord;
 	
-	private ArrayList<JvnObject> objectsCache;
+	private HashMap<Integer,JvnObject> objectsCache;
   /**
   * Default constructor
   * @throws JvnException
   **/
 	private JvnServerImpl() throws Exception {
-		super();
 		// to be completed
-		objectsCache=new ArrayList<JvnObject>();
-		jvnCoord=(JvnRemoteCoord) Naming.lookup("coordinator");
+		objectsCache=new HashMap<>();
+        try{
+	    	jvnCoord=(JvnRemoteCoord) Naming.lookup("//localhost:1050/coord");
+        }
+            catch(NotBoundException e){
+            System.out.println("fail");
+            e.printStackTrace();
+        }
+            catch(RemoteException e){
+            System.out.println("fail");
+
+        }
 	}
 	
   /**
@@ -80,17 +91,19 @@ public class JvnServerImpl
 	public  JvnObject jvnCreateObject(Serializable o)
 	throws jvn.JvnException { 
 		// to be completed 
-		
+        JvnObject object=null;
 		try {
 			int id = jvnCoord.jvnGetObjectId();
-			JvnObject object=new jvnObjectImpl(o, id);
-			return object;
-		
+			object=new jvnObjectImpl(o, id);
+            objectsCache.put(object.jvnGetObjectId(),object);
+
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			throw new JvnException("Error ! jvnCreateObject ");
 		}
+
+        return object;
 	}
 	
 	/**
@@ -103,7 +116,8 @@ public class JvnServerImpl
 	throws jvn.JvnException {
 		// to be completed 
 		try {
-			jvnCoord.jvnRegisterObject(jon, jo, js);//not sure 
+			jvnCoord.jvnRegisterObject(jon, jo, js);//not sure
+
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -126,8 +140,8 @@ public class JvnServerImpl
 			
 			object=jvnCoord.jvnLookupObject(jon, js);
 			if(object!=null) {
-				objectsCache.add(object);
-			return object;
+				objectsCache.put(object.jvnGetObjectId(),object);
+
 			
 			}
 		} catch (RemoteException e) {
@@ -135,10 +149,7 @@ public class JvnServerImpl
 			e.printStackTrace();
 			throw new JvnException("EXception in jvnLookUpObject in jvnServer");
 		}
-		
-		return null;
-		
-		
+        return object;
 	}	
 	
 	/**
@@ -150,18 +161,22 @@ public class JvnServerImpl
    public Serializable jvnLockRead(int joi)
 	 throws JvnException {
 		// to be completed 
-	   
-	   Serializable s;
+
+       System.out.println("jvn server lock read called1");
+	   Serializable s=null;
 	try {
+
 		s = jvnCoord.jvnLockRead(joi, js);
-		return s;
+
+        System.out.println("jvn server lock read called");
+
 	} catch (RemoteException e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
 		return new JvnException("Exception in jvnLockRead in jvnServer ");
 	}
-	   
 
+       return s;
 	}	
 	/**
 	* Get a Write lock on a JVN object 
@@ -172,16 +187,19 @@ public class JvnServerImpl
    public Serializable jvnLockWrite(int joi)
 	 throws JvnException {
 		// to be completed 
-		Serializable s;
-		
+		Serializable s=null;
+
+       System.out.println("jvn server lock read called1");
 		try {
 			s=jvnCoord.jvnLockWrite(joi, js);
-			return s;
+            System.out.println("jvn server lock write called");
+
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return new JvnException("Exception in jvnLockWrite in jvnServer");
 		}
+       return s;
 	}	
 
 	
@@ -195,21 +213,8 @@ public class JvnServerImpl
   public void jvnInvalidateReader(int joi)
 	throws java.rmi.RemoteException,jvn.JvnException {
 		// to be completed 
-	  //recuperer l'objet du cache and invalidate it
-	  boolean found=false;
-	  for (JvnObject jvnObject : objectsCache) {
-		if(jvnObject.jvnGetObjectId()==joi) {
-			found=true;
-			jvnObject.jvnInvalidateReader();
-			break;
-		}
-			
-	  }
-	  if(!found) {
-			throw new JvnException("no object in server cache to invalidate for Reader");
-		}
-
-	};
+         this.objectsCache.get(joi).jvnInvalidateReader();
+	}
 	    
 	/**
 	* Invalidate the Write lock of the JVN object identified by id 
@@ -218,24 +223,9 @@ public class JvnServerImpl
 	* @throws java.rmi.RemoteException,JvnException
 	**/
   public Serializable jvnInvalidateWriter(int joi)
-	throws java.rmi.RemoteException,jvn.JvnException { 
-		// to be completed 
-	
-	  boolean found=false;
-	  for (JvnObject jvnObject : objectsCache) {
-		if(jvnObject.jvnGetObjectId()==joi) {
-			found=true;
-			return jvnObject.jvnInvalidateWriter();
-			
-		}
-			
-	  }
-	  if(!found) {
-			return new JvnException("no object in server cache to invalidate for writing");
-		}
-	  //ligne rajouter pour rien mais obligatoire apparement 
-	  return null;
-	};
+	throws java.rmi.RemoteException,jvn.JvnException {
+      return this.objectsCache.get(joi).jvnInvalidateWriter();
+	}
 	
 	/**
 	* Reduce the Write lock of the JVN object identified by id 
@@ -244,23 +234,9 @@ public class JvnServerImpl
 	* @throws java.rmi.RemoteException,JvnException
 	**/
    public Serializable jvnInvalidateWriterForReader(int joi)
-	 throws java.rmi.RemoteException,jvn.JvnException { 
-		// to be completed 
-	   boolean found=false;
-		  for (JvnObject jvnObject : objectsCache) {
-			if(jvnObject.jvnGetObjectId()==joi) {
-				found=true;
-				return jvnObject.jvnInvalidateWriterForReader();
-				
-			}
-				
-		  }
-		  if(!found) {
-				return new JvnException("no object in server cache to invalidate writer for reader");
-			}
-		  //ligne rajouter pour rien mais obligatoire apparement 
-		  return null;
-		};
+	 throws java.rmi.RemoteException,jvn.JvnException {
+    return this.objectsCache.get(joi).jvnInvalidateWriterForReader();
+   }
 }
 
  

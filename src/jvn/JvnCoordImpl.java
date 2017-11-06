@@ -9,6 +9,12 @@
 package jvn;
 
 import java.rmi.Naming;
+
+import outils.ObjectStatEnum;
+
+import java.net.MalformedURLException;
+import java.rmi.Naming;
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
@@ -47,22 +53,19 @@ public class JvnCoordImpl
 	private static JvnCoordImpl instance = null;
 	
 	private JvnCoordImpl() throws Exception {
-		// to be completed
+        super();
+
+        System.out.println("Cord new cord imp");
+
+        // to be completed
 		jvnObjectList = new ConcurrentHashMap<String,JvnObject>();
 		jvnObjectNameIdList = new ConcurrentHashMap<Integer,String>();
 		jvnObjectId = -1;
 		jvnServerLookupList=new ConcurrentHashMap<String,HashSet<JvnRemoteServer>>();
-		//Registry registry = LocateRegistry.getRegistry("localhost");
-        //JvnRemoteServer obj = (JvnRemoteServer) registry.lookup("MyServer");
-		
-		Registry reg;
-		try {
-			reg = LocateRegistry.createRegistry(1099);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			reg = LocateRegistry.getRegistry();
-		}
-		reg.rebind("coordinator", this);
+		jvnServerList = new ConcurrentHashMap<Integer,JvnRemoteServer>();
+        jvnServerWriterListOfJvnObject = new ConcurrentHashMap<>();
+        jvnServerReaderListOfJvnObject = new ConcurrentHashMap<>();
+
 	}
 	
 	synchronized public static JvnCoordImpl getInstance() throws Exception {
@@ -87,8 +90,7 @@ public class JvnCoordImpl
   /**
   * Associate a symbolic name with a JVN object
   * @param jon : the JVN object name
-  * @param jo  : the JVN object 
-  * @param joi : the JVN object identification
+  * @param jo  : the JVN object
   * @param js  : the remote reference of the JVNServer
   * @throws java.rmi.RemoteException,JvnException
   **/
@@ -129,10 +131,13 @@ public class JvnCoordImpl
     
     //we adds the server to the list
     serversLookupSet.add(js);
+
     //if the jvnObject exists we return it
-    if(jvnObjectList.containsKey(jon))
-    	return jvnObjectList.get(jon);
-    
+    if(jvnObjectList.containsKey(jon)) {
+    	//jvnObjectList.get(jon).setLock(ObjectStatEnum.No_LOCK);
+		return jvnObjectList.get(jon);
+	}
+
     //else we return null
     return null;
     
@@ -147,47 +152,46 @@ public class JvnCoordImpl
   **/
    synchronized public Serializable jvnLockRead(int joi, JvnRemoteServer js)
    throws java.rmi.RemoteException, JvnException{
+
+       System.out.println("Cord jvnLockRead: LockReadCalled");
     // to be completed
-	   Serializable object; 
+	   Serializable object;
+       object = jvnObjectList.get(jvnObjectNameIdList.get(joi)).jvnGetObjectState();
+
+
 	//verify that the object exists
 	String jon = jvnObjectNameIdList.get(joi);
-	JvnObject jo = jvnObjectList.get(jon);
-	/*
-	if(jo==null)
-		return new JvnException();
-	*/
-	//get the writing servers on the jvnObject   
+
+	//get the writing servers on the jvnObject
 	JvnRemoteServer writingServer = jvnServerWriterListOfJvnObject.get(joi);
 	//get list of reading servers on the jvnObject
-	HashSet<JvnRemoteServer> readingServers = jvnServerReaderListOfJvnObject.get(joi); 
+	HashSet<JvnRemoteServer> readingServers = jvnServerReaderListOfJvnObject.get(joi);
 	//if no server is reading
 	if(readingServers==null) {
+        System.out.println("Cord jvnLockRead: ReadingServers = null");
 		//we create  the set of servers
 		readingServers = new HashSet<JvnRemoteServer>();
 		//we add the set to the server readers map
 		jvnServerReaderListOfJvnObject.put(joi, readingServers);
 	}
 	//and we add the  new server to the reading servers of the jvn object (joi)
-	readingServers.add(js);
-	
-	
+       jvnServerReaderListOfJvnObject.get(joi).add(js);
+
+	System.out.println("Cord jvnLockRead: reading server added:" +readingServers);
 	//if there is a server writing
 	if(writingServer!=null) {
+        System.out.println("Cord jvnLockRead: writing server != null");
 		//we call invalidateWriterForReader
 		object = writingServer.jvnInvalidateWriterForReader(joi);
 		//we add the writing server to the reading servers after we did the invaldiation
-		readingServers.add(writingServer);
+        jvnServerReaderListOfJvnObject.get(joi).add(writingServer);
 		//we remove the server from the writing servers list
 		jvnServerWriterListOfJvnObject.remove(joi);
+
+        System.out.println("Cord jvnLockRead: writing server added to reading server:"+readingServers);
+        System.out.println("Cord jvnLockRead: writing server removed from writing servers:"+writingServer);
 	}
-	else {
-		//if there is no servers writing then the object is still the same so we return it as it is !!
-		/**
-		 * NEED TO BE CHECKED ???????????????
-		 */
-		object = jvnObjectList.get(joi);
-	}
-	
+
     return object;
    }
 
@@ -201,7 +205,12 @@ public class JvnCoordImpl
    synchronized public Serializable jvnLockWrite(int joi, JvnRemoteServer js)
    throws java.rmi.RemoteException, JvnException{
 	// to be completed
-	Serializable object = null; 
+
+
+	Serializable object = null;
+
+       object = jvnObjectList.get(jvnObjectNameIdList.get(joi)).jvnGetObjectState();
+
 	//verify that the object exists
 	String jon = jvnObjectNameIdList.get(joi);
 	JvnObject jo = jvnObjectList.get(jon);
@@ -214,7 +223,10 @@ public class JvnCoordImpl
 	//get list of reading servers on the jvnObject
 	HashSet<JvnRemoteServer> readingServers = jvnServerReaderListOfJvnObject.get(joi); 
 	//if there are servers reading ..
+	
+	System.out.print("ReadingServSize: "+readingServers.size());
 	if(readingServers!=null) {
+        System.out.println("Cord jvnLockWrite: reading server != null");
 		//invalidate all readers 
 		while(readingServers.iterator().hasNext()) {
 			readingServers.iterator().next().jvnInvalidateReader(joi);
@@ -223,10 +235,13 @@ public class JvnCoordImpl
 	
 	//if a server is writing
 	if(writingServer!=null) {
-		object = writingServer.jvnInvalidateWriter(joi);
+        System.out.println("Cord jvnLockWrite: writing server != null");
+
+        object = writingServer.jvnInvalidateWriter(joi);
+        jvnServerWriterListOfJvnObject.remove(joi);
 	}
 	
-	jvnServerWriterListOfJvnObject.remove(joi);
+
 	//we put the new server in the map
 	jvnServerWriterListOfJvnObject.put(joi, js);
 	
@@ -247,16 +262,34 @@ public class JvnCoordImpl
     public static void main(String[] argv) {
     JvnCoordImpl jci;
 	try {
-		jci = JvnCoordImpl.getInstance();
-		Naming.rebind("coordinator", jci);
 
+		//jci = JvnCoordImpl.getInstance();
+
+        Registry registry;
+        JvnCoordImpl JVI = null;
+
+		JvnCoordImpl jvnCoord = new JvnCoordImpl();
+        String address = "//localhost:1050/coord";
+
+        try{
+            registry = LocateRegistry.createRegistry(1050);
+            Naming.rebind(address, jvnCoord);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
 	} catch (Exception e1) {
 		// TODO Auto-generated catch block
 		e1.printStackTrace();
 	}
-	
+
 	System.out.println("coordinator ready....");
+
+    while (true);
     }
+
+
 }
 
  

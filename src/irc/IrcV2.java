@@ -48,7 +48,7 @@ public class IrcV2 {
 //			js.jvnRegisterObject("IRC", jo);
 //		}
 		
-		SentenceInterface s = (SentenceInterface) JvnProxy.nwInstance(Sentence.class, "IRC");//= use proxy 
+		SentenceInterface s = (SentenceInterface) JvnProxy.nwInstance(new Sentence(), "IRC");//= use proxy 
 		// create the graphical part of the Chat application
 		 new IrcV2(s);
 	   
@@ -78,9 +78,9 @@ public class IrcV2 {
 		write_button.addActionListener(new writeListener2(this));
 		frame.add(write_button);
 		Button unlock_button = new Button("unLock");
-//		unlock_button.addActionListener(new unLockListener2(this));
+		unlock_button.addActionListener(new unLockListener2(this));
 
-//		frame.add(unlock_button);
+		frame.add(unlock_button);
 
 		frame.setSize(545,201);
 		text.setBackground(Color.black); 
@@ -136,6 +136,22 @@ public class IrcV2 {
 	   irc.sentence.write(s);
 	}
 }
+ 
+ class unLockListener2 implements ActionListener {
+		IrcV2 irc;
+	  
+		public unLockListener2 (IrcV2 ircV2) {
+			irc = ircV2;
+		}
+	   
+	 /**
+	  * Management of user events
+	  **/
+		public void actionPerformed (ActionEvent e) {
+			// lock the object in read mode
+			irc.sentence.setToUnlock();
+		}
+ }
  
 
 

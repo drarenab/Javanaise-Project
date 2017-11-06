@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 import annotation.Read;
+import annotation.Unlock;
 import annotation.Write;
 
 /**
@@ -16,6 +17,8 @@ import annotation.Write;
 public class JvnProxy implements InvocationHandler{
 	JvnObject object;
 
+	
+	
 	private JvnProxy(Object object,String name) throws JvnException {
 //		this.object = object;
 		this.object=JvnServerImpl.jvnGetServer().jvnLookupObject(name);
@@ -29,24 +32,32 @@ public class JvnProxy implements InvocationHandler{
 		}
 	}
 	
-	public static Object nwInstance(Class obj,String name) throws JvnException{
+	public static Object nwInstance(Serializable obj,String name) throws JvnException{
 //		Object o=Proxy.newProxyInstance(obj.getClassLoader(), obj.getInterfaces(), new JvnProxy(obj));
-		return Proxy.newProxyInstance(obj.getClassLoader(),
-									  obj.getInterfaces(), 
+		return Proxy.newProxyInstance(obj.getClass().getClassLoader(),
+									  obj.getClass().getInterfaces(), 
 									  new JvnProxy(obj,name)
 									  );
 	}
+	
+	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 		// TODO Auto-generated method stub
 		System.out.println("Proxy invoke methode"+method.getName());
 		boolean canInvoke=true;
 		if(method.isAnnotationPresent(Read.class)) {
 			this.object.jvnLockRead();
-		}else if(method.isAnnotationPresent(Write.class)) {
+		}
+		else if(method.isAnnotationPresent(Write.class)) {
 			this.object.jvnLockWrite();
-		}else {
+		}
+		else if(method.isAnnotationPresent(Unlock.class)){
+			this.object.jvnSetToNoLock();
+		}
+		else {
 			canInvoke=false;
 		}
+		
 		if(canInvoke) {
 			Object o=method.invoke(this.object.jvnGetObjectState(), args);
 			this.object.jvnUnLock();
